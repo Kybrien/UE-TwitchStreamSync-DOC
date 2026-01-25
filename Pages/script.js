@@ -17,7 +17,7 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
-    // Smooth scrolling for anchor links
+    // Smooth scrolling for anchor links (kept)
     document.querySelectorAll('a[href^="#"]').forEach(anchor => {
         anchor.addEventListener('click', function (e) {
             e.preventDefault();
@@ -249,53 +249,145 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 });
-// Smooth scrolling
-        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
-            anchor.addEventListener('click', function (e) {
-                e.preventDefault();
-                const target = document.querySelector(this.getAttribute('href'));
-                if (target) {
-                    target.scrollIntoView({
-                        behavior: 'smooth',
-                        block: 'start'
-                    });
-                }
-            });
-        });
 
-        // Update active TOC link on scroll
-        const sections = document.querySelectorAll('.doc-section');
-        const tocLinks = document.querySelectorAll('.sidebar-toc a');
 
-        function updateActiveTocLink() {
-            let currentSection = '';
-            sections.forEach(section => {
-                const sectionTop = section.offsetTop - 150;
-                if (window.pageYOffset >= sectionTop) {
-                    currentSection = section.getAttribute('id');
-                }
-            });
+/* =========================================================
+   GLOBAL HASH NAVIGATION (FIX)
+   - Works with injected navbar.html
+   - Works with href="#id" AND href="index.html#id"
+   - Keeps navbar offset
+========================================================= */
 
-            tocLinks.forEach(link => {
-                link.classList.remove('active');
-                if (link.getAttribute('href') === '#' + currentSection) {
-                    link.classList.add('active');
-                }
+(function () {
+    const NAVBAR_OFFSET = 90; // ajuste si tu veux (70 + marge)
+
+    function getTargetFromHref(href) {
+        if (!href) return null;
+
+        // Allow "#id"
+        if (href.startsWith('#')) return { samePage: true, hash: href };
+
+        // Allow "index.html#id" or "/index.html#id"
+        try {
+            const url = new URL(href, window.location.href);
+            const samePage = (url.origin === window.location.origin) && (url.pathname === window.location.pathname);
+            return { samePage, hash: url.hash, pathname: url.pathname, origin: url.origin };
+        } catch {
+            return null;
+        }
+    }
+
+    function smoothScrollToHash(hash, behavior = 'smooth') {
+        if (!hash || hash.length <= 1) return false;
+        const el = document.querySelector(hash);
+        if (!el) return false;
+
+        const y = el.getBoundingClientRect().top + window.pageYOffset - NAVBAR_OFFSET;
+
+        window.scrollTo({ top: y, behavior });
+        return true;
+    }
+
+    // Intercept clicks on any link that contains a hash
+    document.addEventListener('click', function (e) {
+        const a = e.target.closest('a[href]');
+        if (!a) return;
+
+        const href = a.getAttribute('href');
+        if (!href || !href.includes('#')) return;
+
+        const info = getTargetFromHref(href);
+        if (!info || !info.hash) return;
+
+        // Same page => prevent default and smooth scroll
+        if (info.samePage) {
+            // avoid interfering with empty "#"
+            if (info.hash.length <= 1) return;
+
+            e.preventDefault();
+            // Update URL hash without jump
+            history.pushState(null, '', info.hash);
+            smoothScrollToHash(info.hash, 'smooth');
+        } else {
+            // Different page => let navigation happen,
+            // but store the hash so we can animate after page load.
+            if (info.hash && info.hash.length > 1) {
+                sessionStorage.setItem('__pending_hash_scroll__', info.hash);
+            }
+        }
+    }, true);
+
+    function runPendingOrCurrentHash(behavior) {
+        const pending = sessionStorage.getItem('__pending_hash_scroll__');
+        const hash = pending || window.location.hash;
+
+        if (!hash || hash.length <= 1) return;
+
+        // Clear pending so it doesn't rerun
+        if (pending) sessionStorage.removeItem('__pending_hash_scroll__');
+
+        // Delay a bit so layout is stable (fonts/images/navbar)
+        setTimeout(() => smoothScrollToHash(hash, behavior), 120);
+    }
+
+    // Run on DOM ready (covers most cases)
+    document.addEventListener('DOMContentLoaded', () => runPendingOrCurrentHash('smooth'));
+
+    // Run on pageshow (covers bfcache + cases where script attaches after load)
+    window.addEventListener('pageshow', () => runPendingOrCurrentHash('smooth'));
+
+    // Also run immediately (covers ultra-fast loads)
+    runPendingOrCurrentHash('auto');
+})();
+
+
+// Smooth scrolling (kept)
+document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+    anchor.addEventListener('click', function (e) {
+        e.preventDefault();
+        const target = document.querySelector(this.getAttribute('href'));
+        if (target) {
+            target.scrollIntoView({
+                behavior: 'smooth',
+                block: 'start'
             });
         }
+    });
+});
 
-        window.addEventListener('scroll', updateActiveTocLink);
-        updateActiveTocLink();
+// Update active TOC link on scroll (kept)
+const sections = document.querySelectorAll('.doc-section');
+const tocLinks = document.querySelectorAll('.sidebar-toc a');
 
-        // Navbar background on scroll
-        window.addEventListener('scroll', function() {
-            const navbar = document.querySelector('.navbar');
-            if (window.scrollY > 50) {
-                navbar.style.backgroundColor = 'rgba(15, 15, 35, 0.98)';
-            } else {
-                navbar.style.backgroundColor = 'rgba(15, 15, 35, 0.95)';
-            }
-        });
+function updateActiveTocLink() {
+    let currentSection = '';
+    sections.forEach(section => {
+        const sectionTop = section.offsetTop - 150;
+        if (window.pageYOffset >= sectionTop) {
+            currentSection = section.getAttribute('id');
+        }
+    });
+
+    tocLinks.forEach(link => {
+        link.classList.remove('active');
+        if (link.getAttribute('href') === '#' + currentSection) {
+            link.classList.add('active');
+        }
+    });
+}
+
+window.addEventListener('scroll', updateActiveTocLink);
+updateActiveTocLink();
+
+// Navbar background on scroll (kept)
+window.addEventListener('scroll', function() {
+    const navbar = document.querySelector('.navbar');
+    if (window.scrollY > 50) {
+        if (navbar) navbar.style.backgroundColor = 'rgba(15, 15, 35, 0.98)';
+    } else {
+        if (navbar) navbar.style.backgroundColor = 'rgba(15, 15, 35, 0.95)';
+    }
+});
 
 // Preload images for better performance
 function preloadImages() {

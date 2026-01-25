@@ -22,45 +22,12 @@
 
     <!-- Styles -->
     <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="navbar.css">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
 </head>
 <body>
     <a class="skip-link" href="#home">Skip to content</a>
-    <nav class="navbar" role="navigation">
-        <div class="nav-container">
-            <div class="nav-logo">
-                <img src="../Logo/LogoStreamSync.png" alt="StreamSync Twitch Plugin for Unreal Engine" class="logo-img">
-                <span>Twitch StreamSync</span>
-            </div>
-            <div class="nav-menu">
-                <a href="#home" class="nav-link active">Home</a>
-                <div class="nav-item has-dropdown">
-                    <a href="#features" class="nav-link nav-features">Features<span class="nav-chevron">▾</span></a>
-                    <div class="dropdown">
-                      <a href="/features/chat">Twitch Chat</a>
-                      <a href="/features/eventsub">EventSub</a>
-                      <a href="/features/oauth">OAuth & Security</a>
-                      <a href="/features/dev-simulator">Dev Simulator</a>
-                    </div>
-                </div>
-                <a href="#use-cases" class="nav-link">Use Cases</a>
-                <a href="#why" class="nav-link">Why</a>
-                <a href="#requirements" class="nav-link">Requirements</a>
-                <a href="#faq" class="nav-link">FAQ</a>
-                <a href="documentation.html" class="nav-link">Documentation</a>
-            </div>
-            <div class="nav-right">
-                <a href="https://www.fab.com/listings/97e1b3d0-df12-41eb-89f4-3e4e54f28fc4"
-                   target="_blank"
-                   rel="noopener"
-                   class="nav-link cta">Buy</a>
-
-                <div class="nav-toggle" aria-label="Toggle navigation">
-                    <span></span><span></span><span></span>
-                </div>
-            </div>
-        </div>
-    </nav>
+    <div id="navbar-root"></div>
     <main>
         <!-- Hero Section -->
         <section id="home" class="hero">
@@ -96,7 +63,7 @@
         <!-- Features Section -->
         <section id="features" class="features">
             <div class="container">
-                <h2 class="section-title">Core Features of the Twitch Plugin for Unreal Engine</h2>
+                <h2 class="section-title">Core Features of Twitch StreamSync</h2>
 
                 <div class="features-grid">
                     <div class="feature-card">
@@ -112,7 +79,7 @@
                         <h3>Twitch EventSub (WebSocket)</h3>
                         <p>
                             React to real-time Twitch events such as Channel Points,
-                            subscriptions, raids, polls and predictions — no backend required.
+                            subscriptions, raids, polls and predictions with no backend required.
                         </p>
                     </div>
                     <div class="feature-card">
@@ -154,8 +121,8 @@
         <!-- Use Cases Section -->
         <section id="use-cases" class="use-cases">
             <div class="container">
-                <h2 class="section-title">What can you build with Twitch StreamSync?</h2>
-                <p class="section-lead">Real Twitch-driven gameplay patterns you can ship fast — without rebuilding sockets or standing up a backend.</p>
+                <h2 class="section-title">What can you build with this plugin?</h2>
+                <p class="section-lead">Real Twitch-driven gameplay patterns you can ship fast without rebuilding sockets or standing up a backend.</p>
 
                 <div class="uc-grid">
                     <div class="uc-card">
@@ -170,8 +137,8 @@
                     </div>
                     <div class="uc-card">
                         <div class="uc-icon">🗳️</div>
-                        <h3>Polls & predictions in-game</h3>
-                        <p>Let the chat decide what happens next. Pick the next level, the story branch, or the rule set — all synced live with Twitch.</p>
+                        <h3>Polls & in-game predictions</h3>
+                        <p>Let the chat decide what happens next. Pick the next level, the story branch, or the rule set, and all synced live with Twitch.</p>
                     </div>
                     <div class="uc-card">
                         <div class="uc-icon">🧪</div>
@@ -269,12 +236,11 @@
         </div>
         </section>
 
-
         <!-- Visual Docs Section -->
         <section id="visual-docs" class="visual-docs">
             <div class="container">
                 <h2 class="section-title">Visual-first documentation</h2>
-                <p class="section-lead">Every major system is illustrated with real Blueprint screenshots — highlighted, color-coded, and marked when advanced.</p>
+                <p class="section-lead">Every major system is illustrated with real Blueprint screenshots, highlighted, color-coded, and marked when advanced.</p>
 
                 <div class="visual-grid">
                     <div class="visual-card">
@@ -287,7 +253,7 @@
                     </div>
                     <div class="visual-card">
                         <div class="visual-badge"><i class="fas fa-triangle-exclamation"></i> Advanced marked</div>
-                        <p>Advanced or deprecated nodes are explicitly marked so you don’t take the wrong path.</p>
+                        <p>Advanced or deprecated nodes are explicitly marked so you don't take the wrong path.</p>
                     </div>
                 </div>
 
@@ -311,7 +277,7 @@
                 </div>
 
                 <div class="who-foot">
-                    <p><strong>No backend engineer required.</strong> No Twitch API expertise needed.</p>
+                    <p><strong>No backend engineer required.</strong> No Twitch API expertise needed (that's the plugin's job).</p>
                 </div>
             </div>
         </section>
@@ -328,7 +294,7 @@
                             <i class="fas fa-chevron-down"></i>
                         </button>
                         <div class="faq-a" hidden>
-                            <p>No. WebSocket EventSub works without any external server.</p>
+                            <p>Absolutely not. WebSocket EventSub works without any external server.</p>
                         </div>
                     </div>
 
@@ -358,7 +324,7 @@
                             <i class="fas fa-chevron-down"></i>
                         </button>
                         <div class="faq-a" hidden>
-                            <p>Fully usable in Blueprints. Optional C++ helpers are included.</p>
+                            <p>Fully usable in Blueprints. Optional C++ helpers are included but not recommended.</p>
                         </div>
                     </div>
 
@@ -374,21 +340,6 @@
                 </div>
             </div>
         </section>
-
-        <!-- Final CTA -->
-        <section class="final-cta">
-            <div class="container">
-                <div class="final-cta-card">
-                    <h2>Stop wiring Twitch APIs by hand.</h2>
-                    <p>Build real Twitch-driven gameplay in Unreal Engine — faster, safer, and cleaner.</p>
-                    <div class="final-cta-actions">
-                        <a href="documentation.html" class="btn btn-secondary"><i class="fas fa-book"></i> Read the documentation</a>
-                        <a href="https://www.fab.com/listings/97e1b3d0-df12-41eb-89f4-3e4e54f28fc4" target="_blank" class="btn btn-primary"><i class="fas fa-bag-shopping"></i> Buy on FAB Marketplace</a>
-                    </div>
-                </div>
-            </div>
-        </section>
-
         <!-- Requirements Section -->
         <section id="requirements" class="requirements">
             <div class="container">
@@ -428,7 +379,19 @@
                 </div>
             </div>
         </section>
-
+        <!-- Final CTA -->
+        <section class="final-cta">
+            <div class="container">
+                <div class="final-cta-card">
+                    <h2>Stop wiring Twitch APIs by hand.</h2>
+                    <p>Build real Twitch-driven gameplay in Unreal Engine — faster, safer, and cleaner.</p>
+                    <div class="final-cta-actions">
+                        <a href="documentation.html" class="btn btn-secondary"><i class="fas fa-book"></i> Read the documentation</a>
+                        <a href="https://www.fab.com/listings/97e1b3d0-df12-41eb-89f4-3e4e54f28fc4" target="_blank" class="btn btn-primary"><i class="fas fa-bag-shopping"></i> Buy on FAB Marketplace</a>
+                    </div>
+                </div>
+            </div>
+        </section>
         <!-- Footer -->
         <footer class="footer">
             <div class="container">
@@ -465,6 +428,13 @@
         <i class="fas fa-download"></i>
         <span >Download PDF</span>
     </a>
+    <script>
+    fetch("navbar.html")
+        .then(res => res.text())
+        .then(html => {
+            document.getElementById("navbar-root").innerHTML = html;
+        });
+    </script>
     <script src="script.js"></script>
 </body>
 </html>
