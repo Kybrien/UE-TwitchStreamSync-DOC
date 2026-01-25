@@ -39,16 +39,6 @@ document.addEventListener('DOMContentLoaded', function() {
                 const panel = item ? item.querySelector('.faq-a') : null;
                 const isOpen = item && item.classList.contains('is-open');
 
-                // Close others in same accordion
-                // accordion.querySelectorAll('.faq-item.is-open').forEach(openItem => {
-                //     if (openItem === item) return;
-                //     openItem.classList.remove('is-open');
-                //     const openBtn = openItem.querySelector('.faq-q');
-                //     const openPanel = openItem.querySelector('.faq-a');
-                //     if (openBtn) openBtn.setAttribute('aria-expanded', 'false');
-                //     if (openPanel) openPanel.hidden = true;
-                // });
-
                 if (!item || !panel) return;
                 if (isOpen) {
                     item.classList.remove('is-open');
@@ -318,6 +308,41 @@ function preloadImages() {
         img.src = src;
     });
 }
+
+/* =========================================================
+   FEATURES DROPDOWN – MOBILE TAP
+   (ADD ONLY)
+========================================================= */
+
+document.querySelectorAll('.nav-features').forEach(link => {
+    link.addEventListener('click', e => {
+        const parent = link.closest('.has-dropdown');
+
+        // Mobile only
+        if (window.innerWidth <= 768 && parent) {
+            const dropdown = parent.querySelector('.dropdown');
+            const isOpen = dropdown.classList.contains('open');
+
+            e.preventDefault();
+
+            document.querySelectorAll('.dropdown.open')
+                .forEach(d => d.classList.remove('open'));
+
+            if (!isOpen) {
+                dropdown.classList.add('open');
+            }
+        }
+    });
+});
+
+/* Close dropdown on outside click */
+document.addEventListener('click', e => {
+    if (!e.target.closest('.has-dropdown')) {
+        document.querySelectorAll('.dropdown.open')
+            .forEach(d => d.classList.remove('open'));
+    }
+});
+
 
 // Call preload function
 preloadImages();

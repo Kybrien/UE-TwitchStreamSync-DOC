@@ -29,12 +29,20 @@
     <nav class="navbar" role="navigation">
         <div class="nav-container">
             <div class="nav-logo">
-                <img src="LogoStreamSync.png" alt="StreamSync Twitch Plugin for Unreal Engine" class="logo-img">
+                <img src="../Logo/LogoStreamSync.png" alt="StreamSync Twitch Plugin for Unreal Engine" class="logo-img">
                 <span>Twitch StreamSync</span>
             </div>
             <div class="nav-menu">
                 <a href="#home" class="nav-link active">Home</a>
-                <a href="#features" class="nav-link">Features</a>
+                <div class="nav-item has-dropdown">
+                    <a href="#features" class="nav-link nav-features">Features<span class="nav-chevron">▾</span></a>
+                    <div class="dropdown">
+                      <a href="/features/chat">Twitch Chat</a>
+                      <a href="/features/eventsub">EventSub</a>
+                      <a href="/features/oauth">OAuth & Security</a>
+                      <a href="/features/dev-simulator">Dev Simulator</a>
+                    </div>
+                </div>
                 <a href="#use-cases" class="nav-link">Use Cases</a>
                 <a href="#why" class="nav-link">Why</a>
                 <a href="#requirements" class="nav-link">Requirements</a>
@@ -68,7 +76,7 @@
                         Channel Points, polls and real-time events, with no backend required.
                     </p>
                     <div class="hero-buttons">
-                        <a href="documentation.html" class="btn btn-primary">View Documentation</a>
+                        <a href="./documentation.html" class="btn btn-primary">View Documentation</a>
                         <a href="https://www.fab.com/listings/97e1b3d0-df12-41eb-89f4-3e4e54f28fc4"
                            target="_blank"
                            rel="noopener"
@@ -77,7 +85,7 @@
                 </div>
                 <div class="hero-image">
                     <div class="logo-container">
-                        <img src="LogoStreamSync.png"
+                        <img src="../Logo/LogoStreamSync.png"
                              alt="StreamSync Unreal Engine Twitch integration logo"
                              class="hero-logo">
                     </div>

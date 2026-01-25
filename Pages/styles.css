@@ -1413,3 +1413,79 @@ img {
     max-width: 100%;
     height: auto;
 }
+
+/* =========================================================
+   NAVBAR FEATURES DROPDOWN (ADD ONLY)
+========================================================= */
+
+.nav-item {
+    position: relative;
+}
+
+.has-dropdown {
+    display: flex;
+    align-items: center;
+}
+
+.nav-features {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.nav-chevron {
+    font-size: 0.75rem;
+    opacity: 0.7;
+}
+
+/* Dropdown panel */
+.dropdown {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    min-width: 220px;
+    background: rgba(15, 15, 35, 0.98);
+    border: 1px solid var(--border-color);
+    border-radius: 10px;
+    padding: 10px 0;
+    opacity: 0;
+    pointer-events: none;
+    transform: translateY(10px);
+    transition: opacity 0.25s ease, transform 0.25s ease;
+    z-index: 1000;
+}
+
+/* Links */
+.dropdown a {
+    display: block;
+    padding: 10px 18px;
+    color: var(--text-secondary);
+    text-decoration: none;
+    font-weight: 500;
+}
+/* Mobile dropdown open */
+.dropdown.open {
+    opacity: 1;
+    pointer-events: auto;
+    transform: translateY(0);
+}
+
+.dropdown a:hover {
+    background: rgba(145, 70, 255, 0.12);
+    color: var(--primary-color);
+}
+
+/* Hover open (desktop) */
+.has-dropdown:hover .dropdown {
+    opacity: 1;
+    pointer-events: auto;
+    transform: translateY(0);
+}
+
+/* Mobile safety */
+@media (max-width: 768px) {
+    .has-dropdown:hover .dropdown {
+        opacity: 0;
+        pointer-events: none;
+    }
+}
