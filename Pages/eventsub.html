@@ -1,0 +1,708 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <title>Twitch EventSub in Unreal Engine (StreamSync) — Real-time Twitch Events, Scopes & Parsing</title>
+  <meta name="description"
+        content="StreamSync brings Twitch EventSub to Unreal Engine: real-time channel point redemptions, polls, predictions, follows, raids, subs, hype trains, goals, charity, moderation events and more — with scope validation and Blueprint-friendly parsing." />
+
+  <!-- Open Graph -->
+  <meta property="og:title" content="Twitch EventSub for Unreal Engine — StreamSync" />
+  <meta property="og:description" content="Receive Twitch events in real time inside Unreal Engine: EventSub subscriptions, required scopes, secure transport, parsing & Blueprint callbacks." />
+  <meta property="og:type" content="website" />
+  <!-- Styles -->
+  <link rel="stylesheet" href="eventsub.css" />
+  <link rel="stylesheet" href="navbar.css">
+  <!-- Scripts -->
+  <!-- <script defer src="script.js"></script> -->
+</head>
+
+<body>
+
+    <!-- NAVBAR (compatible with your existing script.js behaviours) -->
+    <div id="navbar-root"></div>
+    <main class="eventsub-page">
+
+    <!-- HERO -->
+    <section class="es-hero" id="top">
+        <div class="es-hero-inner">
+            <div class="es-badge">Unreal Engine · Twitch Integration</div>
+            <h1>Twitch EventSub in Unreal Engine</h1>
+            <p class="es-lead">
+                StreamSync integrates Twitch EventSub directly into Unreal Engine,
+                allowing your game to react to real-time Twitch events such as
+                Channel Points, polls, predictions, follows, raids, subscriptions,
+                hype trains, charity events and moderation actions.
+            </p>
+            <div class="es-cta-row">
+                <a class="es-btn primary" href="#supported-eventsub-types">Supported EventSub Types</a>
+                <a class="es-btn" href="#required-oauth-scopes">Required OAuth Scopes</a>
+                <a class="es-btn ghost" href="index.html#download">Download StreamSync</a>
+            </div>
+        </div>
+    </section>
+
+    <!-- TOC / QUICK NAV -->
+    <section class="es-toc-wrap">
+      <div class="es-toc">
+        <a href="#what-is-eventsub">What is EventSub?</a>
+        <a href="#how-streamsync-uses-eventsub">How StreamSync uses it</a>
+        <a href="#transport-security">Transport & security</a>
+        <a href="#parsing-and-dispatch">Parsing & dispatch</a>
+        <a href="#supported-eventsub-types">Supported EventSub types</a>
+        <a href="#required-oauth-scopes">Required OAuth scopes</a>
+        <a href="#setup-checklist">Setup checklist</a>
+        <a href="#faq">FAQ</a>
+      </div>
+    </section>
+
+    <!-- WHAT IS EVENTSUB -->
+    <section class="es-section" id="what-is-eventsub">
+      <div class="es-section-inner">
+        <h2>What is Twitch EventSub?</h2>
+        <p>
+          <strong>EventSub</strong> is Twitch’s official event delivery system. Instead of repeatedly calling endpoints (polling),
+          Twitch <strong>pushes notifications</strong> whenever an event occurs on a channel: a follow, a subscription, a raid, a poll update,
+          a Channel Points redemption, and more.
+        </p>
+        <p>
+          For interactive games and “Twitch Plays”-style experiences, EventSub is the foundation for
+          <strong>audience-driven gameplay</strong>: chat triggers effects, votes decide outcomes, monetization events unlock content, and
+          stream milestones can change the world in real time.
+        </p>
+      </div>
+    </section>
+
+    <!-- HOW STREAMSYNC USES EVENTSUB -->
+    <section class="es-section alt" id="how-streamsync-uses-eventsub">
+      <div class="es-section-inner">
+        <h2>How StreamSync uses EventSub</h2>
+        <div class="es-grid-3">
+          <article class="es-card">
+            <h3>Subscriptions management</h3>
+            <p>
+              StreamSync creates and deletes EventSub subscriptions for the types you select, and queues requests to avoid spamming Helix.
+              It also builds the correct <em>condition</em> fields per event type (broadcaster, moderator, raid target, etc.).
+            </p>
+          </article>
+
+          <article class="es-card">
+            <h3>Two transport modes</h3>
+            <p>
+              The component supports both <strong>WebSocket</strong> transport and an optional <strong>local webhook server</strong>.
+              If webhook isn’t available on a build target, StreamSync falls back to WebSocket automatically.
+            </p>
+          </article>
+
+          <article class="es-card">
+            <h3>Blueprint-friendly events</h3>
+            <p>
+              EventSub payloads are dispatched as <strong>Blueprint multicast events</strong> with raw JSON,
+              and you can use parse helpers to turn them into typed structs for gameplay logic.
+            </p>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <!-- TRANSPORT & SECURITY -->
+    <section class="es-section" id="transport-security">
+      <div class="es-section-inner">
+        <h2>Transport & security</h2>
+        <div class="es-grid-2">
+          <article class="es-card">
+            <h3>Transport selection: Webhook or WebSocket</h3>
+            <ul class="es-list">
+              <li><strong>Webhook</strong>: StreamSync can run a local HTTP server and expose a public callback URL (when enabled).</li>
+              <li><strong>WebSocket</strong>: StreamSync uses a Twitch EventSub WebSocket session_id as transport.</li>
+              <li><strong>Fallback</strong>: if webhook can’t start, it falls back to WebSocket.</li>
+            </ul>
+            <p class="es-note">
+              StreamSync builds the EventSub subscription JSON with a <code>transport</code> block that switches between webhook and websocket.
+            </p>
+          </article>
+
+          <article class="es-card">
+            <h3>Scope validation before subscribing</h3>
+            <p>
+              For event types that require permissions, StreamSync checks the user token scopes before queuing the subscription.
+              That means missing scopes are caught early, instead of failing silently later.
+            </p>
+            <p class="es-note">
+              You’ll find the exact mapping in the <strong>Required OAuth scopes</strong> table below.
+            </p>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <!-- PARSING & DISPATCH -->
+    <section class="es-section alt" id="parsing-and-dispatch">
+      <div class="es-section-inner">
+        <h2>Parsing & dispatch (raw JSON → typed structs)</h2>
+
+        <div class="es-grid-2">
+          <article class="es-card">
+            <h3>Dispatch: EventSub type → Blueprint event</h3>
+            <p>
+              StreamSync exposes an Event Library that routes <code>(Type, Json)</code> into the correct Blueprint multicast event
+              (PollBegin, PredictionProgress, Follow, Raid, Subscribe, Cheer, Hype Train, etc.).
+            </p>
+            <p class="es-note">
+              This lets you keep a single “EventSub Received” entry point and then dispatch cleanly by type.
+            </p>
+          </article>
+
+          <article class="es-card">
+            <h3>Parse helpers: gameplay-ready data</h3>
+            <p>
+              The Parse Library provides functions/structs that turn EventSub JSON into typed data for your game logic
+              (poll choices & tallies, prediction outcomes, follow metadata, raid viewers, subscription tier, and more).
+            </p>
+            <p class="es-note">
+              Goal: you should rarely need to manually JSON-walk in Blueprints.
+            </p>
+          </article>
+        </div>
+
+        <div class="es-callout">
+          <h3>Why parsing matters for Unreal Engine projects</h3>
+          <p>
+            Raw EventSub payloads are great for debugging, but in production you want stable, explicit fields:
+            <strong>IDs</strong>, <strong>timestamps</strong>, <strong>vote tallies</strong>, <strong>user display names</strong>,
+            <strong>amounts</strong> and <strong>tiers</strong>. Typed parsing makes your gameplay logic simpler and safer.
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <!-- SUPPORTED EVENTSUB TYPES -->
+    <section class="es-section" id="supported-eventsub-types">
+      <div class="es-section-inner">
+        <h2>Supported EventSub types in StreamSync</h2>
+        <p class="es-sub">
+          Below is the full set of EventSub event types currently defined and handled by the StreamSync EventSub component.
+          For each type you’ll find what it represents, the subscription “condition” used by StreamSync, and typical gameplay uses.
+        </p>
+
+        <div class="es-table-wrap">
+          <table class="es-table">
+            <thead>
+              <tr>
+                <th>EventSub type</th>
+                <th>What it means</th>
+                <th>Condition used by StreamSync</th>
+                <th>Version</th>
+                <th>Great for</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><code>channel.channel_points_custom_reward_redemption.add</code></td>
+                <td>Channel Points reward redemption</td>
+                <td><code>broadcaster_user_id</code></td>
+                <td>1</td>
+                <td>Viewer-triggered abilities, debuffs, spawning items</td>
+              </tr>
+
+              <tr>
+                <td><code>channel.poll.begin</code></td>
+                <td>Poll started</td>
+                <td><code>broadcaster_user_id</code></td>
+                <td>1</td>
+                <td>Branching choices, “vote the next event”, quick decisions</td>
+              </tr>
+              <tr>
+                <td><code>channel.poll.progress</code></td>
+                <td>Poll updated (tallies)</td>
+                <td><code>broadcaster_user_id</code></td>
+                <td>1</td>
+                <td>Live UI updates, adaptive difficulty based on votes</td>
+              </tr>
+              <tr>
+                <td><code>channel.poll.end</code></td>
+                <td>Poll ended (winner)</td>
+                <td><code>broadcaster_user_id</code></td>
+                <td>1</td>
+                <td>Commit the chosen outcome</td>
+              </tr>
+
+              <tr>
+                <td><code>channel.prediction.begin</code></td>
+                <td>Prediction started</td>
+                <td><code>broadcaster_user_id</code></td>
+                <td>1</td>
+                <td>Betting mechanics, viewer-driven stakes</td>
+              </tr>
+              <tr>
+                <td><code>channel.prediction.progress</code></td>
+                <td>Prediction updated</td>
+                <td><code>broadcaster_user_id</code></td>
+                <td>1</td>
+                <td>Live tension UI, dynamic modifiers</td>
+              </tr>
+              <tr>
+                <td><code>channel.prediction.lock</code></td>
+                <td>Prediction locked</td>
+                <td><code>broadcaster_user_id</code></td>
+                <td>1</td>
+                <td>Freeze betting, shift to “final phase” gameplay</td>
+              </tr>
+              <tr>
+                <td><code>channel.prediction.end</code></td>
+                <td>Prediction ended (winner)</td>
+                <td><code>broadcaster_user_id</code></td>
+                <td>1</td>
+                <td>Resolve rewards/penalties</td>
+              </tr>
+
+              <tr>
+                <td><code>channel.follow</code></td>
+                <td>New follower</td>
+                <td><code>broadcaster_user_id</code> + <code>moderator_user_id</code></td>
+                <td>2</td>
+                <td>Welcome events, cosmetics unlocks, community goals</td>
+              </tr>
+
+              <tr>
+                <td><code>channel.raid</code></td>
+                <td>Incoming raid</td>
+                <td><code>to_broadcaster_user_id</code></td>
+                <td>1</td>
+                <td>Boss wave, world event, difficulty spike, cinematic moment</td>
+              </tr>
+
+              <tr>
+                <td><code>channel.subscribe</code></td>
+                <td>New subscription</td>
+                <td><code>broadcaster_user_id</code></td>
+                <td>1</td>
+                <td>Premium rewards, unlock areas, “supporter” perks</td>
+              </tr>
+              <tr>
+                <td><code>channel.subscription.gift</code></td>
+                <td>Gift subscriptions</td>
+                <td><code>broadcaster_user_id</code></td>
+                <td>1</td>
+                <td>Global bonuses, community boosts, special waves</td>
+              </tr>
+              <tr>
+                <td><code>channel.subscription.message</code></td>
+                <td>Resub message</td>
+                <td><code>broadcaster_user_id</code></td>
+                <td>1</td>
+                <td>Personalized reactions, shoutouts, on-screen overlays</td>
+              </tr>
+
+              <tr>
+                <td><code>channel.cheer</code></td>
+                <td>Bits cheer</td>
+                <td><code>broadcaster_user_id</code></td>
+                <td>1</td>
+                <td>Currency conversion, power-ups, donation effects</td>
+              </tr>
+
+              <tr>
+                <td><code>channel.ban</code></td>
+                <td>User banned</td>
+                <td><code>broadcaster_user_id</code></td>
+                <td>1</td>
+                <td>Moderation-driven events, safety overlays</td>
+              </tr>
+              <tr>
+                <td><code>channel.unban</code></td>
+                <td>User unbanned</td>
+                <td><code>broadcaster_user_id</code></td>
+                <td>1</td>
+                <td>“Return” events, restore access</td>
+              </tr>
+
+              <tr>
+                <td><code>channel.moderator.add</code></td>
+                <td>Moderator added</td>
+                <td><code>broadcaster_user_id</code></td>
+                <td>1</td>
+                <td>Admin UI changes, privileges, alerts</td>
+              </tr>
+              <tr>
+                <td><code>channel.moderator.remove</code></td>
+                <td>Moderator removed</td>
+                <td><code>broadcaster_user_id</code></td>
+                <td>1</td>
+                <td>Admin UI changes, privileges removal</td>
+              </tr>
+
+              <tr>
+                <td><code>stream.online</code></td>
+                <td>Stream went live</td>
+                <td><code>broadcaster_user_id</code></td>
+                <td>1</td>
+                <td>Auto-start sequences, “live mode” gameplay toggles</td>
+              </tr>
+              <tr>
+                <td><code>stream.offline</code></td>
+                <td>Stream ended</td>
+                <td><code>broadcaster_user_id</code></td>
+                <td>1</td>
+                <td>Cleanup, save state, end-of-stream recap</td>
+              </tr>
+
+              <tr>
+                <td><code>channel.ad_break.begin</code></td>
+                <td>Ad break started</td>
+                <td><code>broadcaster_user_id</code></td>
+                <td>1</td>
+                <td>Pause intensity, show safe screen, intermission mode</td>
+              </tr>
+
+              <tr>
+                <td><code>channel.shoutout.create</code></td>
+                <td>Shoutout created</td>
+                <td><code>broadcaster_user_id</code> + <code>moderator_user_id</code></td>
+                <td>1</td>
+                <td>Cross-channel moments, collaborations, rewards</td>
+              </tr>
+              <tr>
+                <td><code>channel.shoutout.receive</code></td>
+                <td>Shoutout received</td>
+                <td><code>broadcaster_user_id</code> + <code>moderator_user_id</code></td>
+                <td>1</td>
+                <td>Incoming attention spike, onboarding sequences</td>
+              </tr>
+
+              <tr>
+                <td><code>channel.charity_campaign.start</code></td>
+                <td>Charity campaign started</td>
+                <td><code>broadcaster_user_id</code></td>
+                <td>1</td>
+                <td>Charity mode, donation milestones</td>
+              </tr>
+              <tr>
+                <td><code>channel.charity_campaign.progress</code></td>
+                <td>Charity campaign progress</td>
+                <td><code>broadcaster_user_id</code></td>
+                <td>1</td>
+                <td>Live progress UI, milestone rewards</td>
+              </tr>
+              <tr>
+                <td><code>channel.charity_campaign.stop</code></td>
+                <td>Charity campaign ended</td>
+                <td><code>broadcaster_user_id</code></td>
+                <td>1</td>
+                <td>Wrap-up sequence, thank-you events</td>
+              </tr>
+              <tr>
+                <td><code>channel.charity_campaign.donate</code></td>
+                <td>Charity donation received</td>
+                <td><code>broadcaster_user_id</code></td>
+                <td>1</td>
+                <td>Donation effects, on-screen callouts</td>
+              </tr>
+
+              <tr>
+                <td><code>channel.shield_mode.begin</code></td>
+                <td>Shield mode enabled</td>
+                <td><code>broadcaster_user_id</code> + <code>moderator_user_id</code></td>
+                <td>1</td>
+                <td>Safety overlays, moderation intensity, anti-raid measures</td>
+              </tr>
+              <tr>
+                <td><code>channel.shield_mode.end</code></td>
+                <td>Shield mode disabled</td>
+                <td><code>broadcaster_user_id</code> + <code>moderator_user_id</code></td>
+                <td>1</td>
+                <td>Return to normal mode</td>
+              </tr>
+
+              <tr>
+                <td><code>channel.goal.begin</code></td>
+                <td>Goal started</td>
+                <td><code>broadcaster_user_id</code></td>
+                <td>1</td>
+                <td>Community objectives, event tracks</td>
+              </tr>
+              <tr>
+                <td><code>channel.goal.progress</code></td>
+                <td>Goal progress</td>
+                <td><code>broadcaster_user_id</code></td>
+                <td>1</td>
+                <td>Progress bars, milestone triggers</td>
+              </tr>
+              <tr>
+                <td><code>channel.goal.end</code></td>
+                <td>Goal ended</td>
+                <td><code>broadcaster_user_id</code></td>
+                <td>1</td>
+                <td>Final reward unlock</td>
+              </tr>
+
+              <tr>
+                <td><code>channel.hype_train.begin</code></td>
+                <td>Hype Train started</td>
+                <td><code>broadcaster_user_id</code></td>
+                <td>1</td>
+                <td>Intensity ramp, special buffs, celebratory VFX</td>
+              </tr>
+              <tr>
+                <td><code>channel.hype_train.progress</code></td>
+                <td>Hype Train progress</td>
+                <td><code>broadcaster_user_id</code></td>
+                <td>1</td>
+                <td>Live hype meter, scaling effects</td>
+              </tr>
+              <tr>
+                <td><code>channel.hype_train.end</code></td>
+                <td>Hype Train ended</td>
+                <td><code>broadcaster_user_id</code></td>
+                <td>2</td>
+                <td>Wrap-up reward, end burst, recap panel</td>
+              </tr>
+
+              <tr>
+                <td><code>channel.chat.clear</code></td>
+                <td>Chat cleared</td>
+                <td><code>broadcaster_user_id</code> + <code>user_id</code></td>
+                <td>1</td>
+                <td>Overlay reset, moderation UI events</td>
+              </tr>
+              <tr>
+                <td><code>channel.chat.clear_user_messages</code></td>
+                <td>User messages cleared</td>
+                <td><code>broadcaster_user_id</code> + <code>user_id</code></td>
+                <td>1</td>
+                <td>Moderation overlays, in-game penalties</td>
+              </tr>
+
+              <tr>
+                <td><code>user.update</code></td>
+                <td>User account updated</td>
+                <td><code>user_id</code></td>
+                <td>1</td>
+                <td>Profile refresh, identity UI, account-driven settings</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <p class="es-note">
+          Note: StreamSync also contains condition handling for several <code>channel.chat.*</code> types
+          (message, delete, notification, hold/update, settings_update). That’s primarily future-proofing —
+          the core list above reflects the types currently declared as “known” types in the component.
+        </p>
+      </div>
+    </section>
+
+    <!-- REQUIRED OAUTH SCOPES -->
+    <section class="es-section alt" id="required-oauth-scopes">
+      <div class="es-section-inner">
+        <h2>Required OAuth scopes (validated by StreamSync)</h2>
+        <p class="es-sub">
+          Some EventSub types require Twitch OAuth permissions. StreamSync checks your token’s scopes before subscribing,
+          so you immediately know what’s missing.
+        </p>
+
+        <div class="es-table-wrap">
+          <table class="es-table">
+            <thead>
+              <tr>
+                <th>EventSub type</th>
+                <th>Required OAuth scope</th>
+                <th>Why it’s needed</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><code>channel.channel_points_custom_reward_redemption.add</code></td>
+                <td><code>channel:read:redemptions</code></td>
+                <td>Read Channel Points redemptions for the broadcaster</td>
+              </tr>
+
+              <tr>
+                <td><code>channel.poll.begin</code>, <code>progress</code>, <code>end</code></td>
+                <td><code>channel:read:polls</code></td>
+                <td>Read poll lifecycle and vote data</td>
+              </tr>
+
+              <tr>
+                <td><code>channel.prediction.begin</code>, <code>progress</code>, <code>lock</code>, <code>end</code></td>
+                <td><code>channel:read:predictions</code></td>
+                <td>Read prediction lifecycle and outcomes</td>
+              </tr>
+
+              <tr>
+                <td><code>channel.follow</code></td>
+                <td><code>moderator:read:followers</code></td>
+                <td>Read follower events (v2) using broadcaster+moderator condition</td>
+              </tr>
+
+              <tr>
+                <td><code>channel.shoutout.create</code></td>
+                <td><code>moderator:manage:shoutouts</code></td>
+                <td>Create shoutout events require moderation management scope</td>
+              </tr>
+
+              <tr>
+                <td><code>channel.shoutout.receive</code></td>
+                <td><code>moderator:read:shoutouts</code></td>
+                <td>Read incoming shoutouts</td>
+              </tr>
+
+              <tr>
+                <td><code>channel.charity_campaign.start</code>, <code>progress</code>, <code>stop</code>, <code>donate</code></td>
+                <td><code>channel:read:charity</code></td>
+                <td>Read charity campaign and donation events</td>
+              </tr>
+
+              <tr>
+                <td><code>channel.shield_mode.begin</code>, <code>end</code></td>
+                <td><code>moderator:read:shield_mode</code></td>
+                <td>Read shield mode state changes</td>
+              </tr>
+
+              <tr>
+                <td><code>channel.goal.begin</code>, <code>progress</code>, <code>end</code></td>
+                <td><code>channel:read:goals</code></td>
+                <td>Read goal lifecycle and progress</td>
+              </tr>
+
+              <tr>
+                <td><code>channel.hype_train.begin</code>, <code>progress</code>, <code>end</code></td>
+                <td><code>channel:read:hype_train</code></td>
+                <td>Read hype train lifecycle and data</td>
+              </tr>
+
+              <tr>
+                <td><code>channel.ad_break.begin</code></td>
+                <td><code>channel:read:ads</code></td>
+                <td>Read ad break start events</td>
+              </tr>
+
+              <tr>
+                <td><code>channel.chat.clear</code>, <code>channel.chat.clear_user_messages</code></td>
+                <td><code>moderation:read</code></td>
+                <td>Read moderation actions impacting chat</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <p class="es-note">
+          For other types (subs, cheers, bans, stream online/offline, etc.), StreamSync can subscribe using the broadcaster condition
+          without enforcing a required scope in the validation map above.
+        </p>
+      </div>
+    </section>
+
+    <!-- SETUP CHECKLIST -->
+    <section class="es-section" id="setup-checklist">
+      <div class="es-section-inner">
+        <h2>Setup checklist (recommended)</h2>
+        <ol class="es-steps">
+          <li><strong>Authenticate</strong> with Twitch and obtain a user token containing the scopes you need.</li>
+          <li><strong>Enable EventSub</strong> on the StreamSync component and choose your event selection (Channel Points / Polls / Predictions / etc.).</li>
+          <li><strong>Pick transport</strong>: WebSocket for easiest setup, or webhook if you want a callback URL and secret verification.</li>
+          <li><strong>Bind Blueprint events</strong> (Follow, Raid, Channel Points redemption, Poll events, Prediction events…).</li>
+          <li><strong>Use Parse Helpers</strong> to convert raw JSON into typed structs for clean gameplay logic.</li>
+        </ol>
+
+        <div class="es-callout">
+          <h3>Best practice: don’t build gameplay on raw JSON strings</h3>
+          <p>
+            Use the parsing layer whenever possible. It reduces errors, avoids field name typos, and keeps your Blueprints clean.
+          </p>
+        </div>
+
+        <div class="es-download">
+          <a class="es-btn primary" href="index.html#download">Download StreamSync</a>
+          <a class="es-btn" href="documentation.html">Read Documentation</a>
+        </div>
+      </div>
+    </section>
+
+    <!-- FAQ -->
+    <section class="faq" id="faq">
+        <div class="container">
+            <h2 class="section-title">Frequently Asked Questions</h2>
+
+            <div class="faq-list" data-accordion>
+
+                <div class="faq-item">
+                    <button class="faq-q" aria-expanded="false">
+                        What is Twitch EventSub?
+                        <i>▾</i>
+                    </button>
+                    <div class="faq-a" hidden>
+                        EventSub is Twitch’s real-time event delivery system. Instead of polling APIs,
+                        Twitch pushes events whenever something happens on a channel.
+                    </div>
+                </div>
+
+                <div class="faq-item">
+                    <button class="faq-q" aria-expanded="false">
+                        Why use EventSub instead of Helix polling?
+                        <i>▾</i>
+                    </button>
+                    <div class="faq-a" hidden>
+                        EventSub is instant, scalable and rate-limit friendly, making it ideal
+                        for interactive Unreal Engine projects.
+                    </div>
+                </div>
+
+                <div class="faq-item">
+                    <button class="faq-q" aria-expanded="false">
+                        Does StreamSync validate OAuth scopes?
+                        <i>▾</i>
+                    </button>
+                    <div class="faq-a" hidden>
+                        Yes. StreamSync checks required scopes before subscribing to EventSub types,
+                        preventing silent failures.
+                    </div>
+                </div>
+
+                <div class="faq-item">
+                    <button class="faq-q" aria-expanded="false">
+                        Do I need Webhooks?
+                        <i>▾</i>
+                    </button>
+                    <div class="faq-a" hidden>
+                        No. StreamSync supports EventSub WebSocket transport, which is the easiest way to get started.
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </section>
+
+    <!-- FOOTER CTA -->
+    <section class="es-footer-cta">
+        <div class="es-footer-cta-inner">
+            <h2>Build real Twitch-interactive gameplay</h2>
+            <p>
+                StreamSync gives you production-ready Twitch EventSub integration,
+                scope validation and Blueprint parsing for Unreal Engine.
+            </p>
+            <div class="es-cta-row">
+                <a class="es-btn primary" href="index.html#download">Download</a>
+                <a class="es-btn ghost" href="#top">Back to top</a>
+            </div>
+        </div>
+    </section>
+
+  </main>
+
+  <footer class="footer">
+    <p>© StreamSync — Twitch EventSub integration for Unreal Engine</p>
+  </footer>
+
+  <!-- Small inline enhancement (optional): fixes aria-expanded for nav toggle -->
+    <script>
+        fetch("navbar.html")
+            .then(res => res.text())
+            .then(html => {
+                document.getElementById("navbar-root").innerHTML = html;
+            });
+    </script>
+</body>
+</html>
