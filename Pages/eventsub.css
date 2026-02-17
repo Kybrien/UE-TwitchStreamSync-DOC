@@ -35,11 +35,19 @@ body {
     line-height: 1.65;
     overflow-x: hidden;
 }
-
+html {
+  scroll-behavior: smooth;
+}
 /* Offset for fixed navbar */
 .eventsub-page {
+    margin-left: 225px;
     padding-top: 90px;
 }
+/* .eventsub-page.doc-content {
+    margin-left: 225px;
+    padding: 120px 40px 80px;
+} */
+
 
 /* ---------------- HERO ---------------- */
 
@@ -363,4 +371,135 @@ body {
     .es-table {
         min-width: 760px;
     }
+}
+
+
+/* ======================================================
+   EVENTSUB SIDEBAR (SAME AS DOCUMENTATION)
+====================================================== */
+
+.doc-sidebar {
+    position: fixed;
+    top: 70px;
+    left: 0;
+    width: 225px;
+    height: calc(100vh - 70px);
+    background: rgba(15, 15, 35, 0.95);
+    border-right: 1px solid var(--border-color);
+    padding: 40px 0;
+    overflow-y: auto;
+    z-index: 900;
+}
+
+.doc-sidebar-title {
+    color: var(--primary-color);
+    font-size: 0.85rem;
+    padding: 0 30px 18px;
+    margin-bottom: 18px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.doc-sidebar-menu {
+    list-style: none;
+}
+
+.doc-sidebar-link {
+    display: block;
+    padding: 12px 30px;
+    color: var(--text-secondary);
+    text-decoration: none;
+    border-left: 3px solid transparent;
+    transition: all 0.25s ease;
+}
+
+.doc-sidebar-link:hover {
+    background: rgba(145, 70, 255, 0.08);
+    color: var(--text-primary);
+    border-left-color: var(--primary-color);
+}
+
+.doc-sidebar-link.active {
+    background: rgba(145, 70, 255, 0.15);
+    color: var(--primary-color);
+    border-left-color: var(--primary-color);
+    font-weight: 600;
+}
+
+@media (max-width: 1024px) {
+  .doc-sidebar { left: -260px; }
+
+  .eventsub-page {
+    margin-left: 0;
+  }
+}
+
+/* ======================================================
+   FOOTER — SAME AS INDEX (LOCAL COPY)
+====================================================== */
+
+.footer {
+    background: linear-gradient(180deg, var(--darker-bg), var(--dark-bg));
+    border-top: 1px solid var(--border-color);
+    padding: 80px 20px 60px;
+}
+
+.footer .container {
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+.footer-content {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: 40px;
+}
+
+.footer-section h3 {
+    color: var(--text-primary);
+    font-size: 1.1rem;
+    margin-bottom: 16px;
+}
+
+.footer-section p {
+    color: var(--text-secondary);
+    font-size: 0.95rem;
+    line-height: 1.6;
+}
+
+.footer-section ul {
+    list-style: none;
+    padding: 0;
+}
+
+.footer-section ul li {
+    margin-bottom: 10px;
+}
+
+.footer-section ul li a {
+    color: var(--text-secondary);
+    text-decoration: none;
+    transition: color 0.2s ease;
+}
+
+.footer-section ul li a:hover {
+    color: var(--primary-color);
+}
+
+.social-links {
+    display: flex;
+    gap: 14px;
+    margin-top: 16px;
+}
+
+.social-links a {
+    color: var(--text-secondary);
+    font-size: 1.2rem;
+    transition: color 0.2s ease, transform 0.2s ease;
+}
+
+.social-links a:hover {
+    color: var(--primary-color);
+    transform: translateY(-2px);
 }
